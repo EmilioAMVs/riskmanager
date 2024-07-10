@@ -99,17 +99,26 @@
 
         function updateTable(data, column) {
             const table = document.getElementById('resultados-table');
-            table.innerHTML = ''; // Limpiar tabla antes de actualizar
-            for (let i = 0; i < data.length; i++) {
-                const row = table.insertRow();
-                row.insertCell(0).textContent = i + 1; // ID comenzando desde 1
-                if (column === 'Activo') {
-                    row.insertCell(1).textContent = data[i];
-                } else if (column === 'Categoría') {
-                    row.insertCell(2).textContent = data[i];
-                } else if (column === 'Valoración') {
-                    row.insertCell(3).textContent = data[i];
-                }
+            if (column === 'Activo') {
+                // Limpiar tabla solo cuando se buscan nuevos activos
+                table.innerHTML = '';
+                data.forEach((item, index) => {
+                    const row = table.insertRow();
+                    row.insertCell(0).textContent = index + 1;
+                    row.insertCell(1).textContent = item;
+                    row.insertCell(2).textContent = '';  // Categoría vacía
+                    row.insertCell(3).textContent = '';  // Valoración vacía
+                });
+            } else {
+                // Actualizar las columnas correspondientes sin borrar otras
+                const rows = table.rows;
+                data.forEach((item, index) => {
+                    if (column === 'Categoría') {
+                        rows[index].cells[2].textContent = item;
+                    } else if (column === 'Valoración') {
+                        rows[index].cells[3].textContent = item;
+                    }
+                });
             }
         }
     </script>

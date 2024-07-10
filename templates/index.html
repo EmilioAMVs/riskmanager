@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Activos</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+        .btn-group {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestión de Activos</h1>
+        <form id="buscar-form">
+            <div class="form-group">
+                <label for="dominio">Dominio:</label>
+                <input type="text" id="dominio" name="dominio" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+        <div class="btn-group">
+            <button id="categorizar-button" class="btn btn-secondary">Categorizar</button>
+            <button id="evaluar-button" class="btn btn-secondary">Evaluar</button>
+            <button id="descargar-button" class="btn btn-success">Descargar Excel</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Activo</th>
+                        <th>Categoría</th>
+                        <th>Valoración</th>
+                    </tr>
+                </thead>
+                <tbody id="resultados-table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        document.getElementById('buscar-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            fetch('/buscar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateTable(data, 'Activo');
+            });
+        });
+
+        document.getElementById('categorizar-button').addEventListener('click', function() {
+            fetch('/categorizar', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                updateTable(data, 'Categoría');
+            });
+        });
+
+        document.getElementById('evaluar-button').addEventListener('click', function() {
+            fetch('/evaluar', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                updateTable(data, 'Valoración');
+            });
+        });
+
+        document.getElementById('descargar-button').addEventListener('click', function() {
+            fetch('/descargar', { method: 'POST' })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'resultados_activos.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+        });
+
+        function updateTable(data, column) {
+            const table = document.getElementById('resultados-table');
+            table.innerHTML = ''; // Limpiar tabla antes de actualizar
+            for (let i = 0; i < data.length; i++) {
+                const row = table.insertRow();
+                row.insertCell(0).textContent = i + 1; // ID comenzando desde 1
+                if (column === 'Activo') {
+                    row.insertCell(1).textContent = data[i];
+                } else if (column === 'Categoría') {
+                    row.insertCell(2).textContent = data[i];
+                } else if (column === 'Valoración') {
+                    row.insertCell(3).textContent = data[i];
+                }
+            }
+        }
+    </script>
+</body>
+</html>
